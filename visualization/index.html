@@ -16,7 +16,9 @@
 </head>
 <body>
 <script>
-var selectedDirection ="Backward";
+
+var selectedDirection =directions[0].value;
+
 var isShortNotation = true;
 var activeMethod = null;
 var highlightedNode;
@@ -52,10 +54,7 @@ webix.ui({
                               }
                             }, 
                             
-                            options:[
-                            {id:"Backward", value:"Backward"},
-                            {id:"Forward", value:"Forward"},
-                            ] 
+                            options:directions
                           },
                           { 
                               view:"label", 
@@ -259,6 +258,11 @@ function renderMethodIn(methodId, methodDiv){
                 'background-color': 'orange'
               }
             },{
+              selector: '.showLabel',
+              style: {
+                'label': 'data(ideValue)'
+              }
+            },{
               selector: '.indirectWriteFlow',
               style: {
                 'target-arrow-color': 'green',
@@ -335,6 +339,8 @@ function renderMethodWithESG(methodId, methodDiv){
             var tgt = event.cyTarget;
               if(tgt.hasClass("hidden"))
                 return;
+
+              addClassWhileOver(tgt,tgt,"showLabel");
               global = tgt;
               cy.elements().breadthFirstSearch( {
                 root: tgt,

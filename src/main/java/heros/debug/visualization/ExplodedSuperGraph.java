@@ -1,8 +1,10 @@
 package heros.debug.visualization;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import heros.InterproceduralCFG;
@@ -20,7 +22,12 @@ public class ExplodedSuperGraph<Method, Stmt, Fact, Value> {
 	private Set<Pair<ESGNode, ESGNode>> summaries = new HashSet<>();
 	private static int esgNodeCounter = 0;
 	private EdgeLabels labels;
+	private Map<ESGNode, Value> esgNodeToValue = new HashMap<>();
 
+	public void setValue(ESGNode esgNode, Value value) {
+		System.out.println(esgNode.a + " @ " + esgNode.u +" -----> " + value) ;
+		esgNodeToValue.put(esgNode,value);
+	}
 	public ExplodedSuperGraph(Method m, Direction dir) {
 		this.method = m;
 		this.direction = dir;
@@ -293,5 +300,8 @@ public class ExplodedSuperGraph<Method, Stmt, Fact, Value> {
 				}
 			}
 		}
+	}
+	public Value getIDEValue(ExplodedSuperGraph<Method, Stmt, Fact, Value>.ESGNode node) {
+		return esgNodeToValue.get(node);
 	}
 }

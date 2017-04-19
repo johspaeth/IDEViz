@@ -24,23 +24,13 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 	private Map<Key, ExplodedSuperGraph<Method,Stmt,Fact,Value>> methodToCfg = new HashMap<>();
 	private Map<Object, Integer> objectToInteger = new HashMap<>();
 	private I icfg;
-	private Integer mainMethodId;
-//	private HashMap<ESGNode, Value> esgNodeToLatticeVal = new HashMap<>();
-	private EdgeLabels labels;
 	public enum Direction{
 		Forward, Backward
 	} 
 
 	public IDEToJSON(File file, I icfg) {
-		this(file,icfg, null);
-	}
-	public IDEToJSON(File file, I icfg,  EdgeLabels labels) {
 		this.jsonFile = file;
 		this.icfg = icfg;
-		if(labels == null){
-			labels = new DefaultLabels();
-		}
-		this.labels = labels;
 	}
 
 	public ExplodedSuperGraph<Method,Stmt,Fact,Value> getOrCreateESG(Method method, Direction dir) {
@@ -208,9 +198,9 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 				additionalData.put("id", "n" + id(node));
 				additionalData.put("stmtId", id(node.u));
 				additionalData.put("factId", id(node.a));
-//				if (esgNodeToLatticeVal.get(node) != null)
-//					additionalData.put("ideValue",
-//							StringEscapeUtils.escapeHtml4(esgNodeToLatticeVal.get(node).toString()));
+				if (esg.getIDEValue(node) != null)
+					additionalData.put("ideValue",
+							StringEscapeUtils.escapeHtml4(esg.getIDEValue(node).toString()));
 				nodeObj.put("classes", classes);
 				nodeObj.put("group", "nodes");
 				nodeObj.put("data", additionalData);
@@ -295,6 +285,16 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			file.write("var methodList = [");
 			file.write(Joiner.on(",\n").join(methods));
 			file.write("];\n");
+			
+			Set<String> directions = new HashSet<>();
+			for(Direction d: direction){
+				JSONObject v = new JSONObject();
+				v.put("value", d.toString());
+				directions.add(v.toJSONString());
+			}
+			file.write("var directions = [");
+			file.write(Joiner.on(",\n").join(directions));
+			file.write("];\n");
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -310,43 +310,4 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 		}
 	}
 	
-	public interface EdgeLabels{
-		public String summaryFlow();
-
-		public String normalFlow();
-
-		public String returnFlow();
-
-		public String call2ReturnFlow();
-
-		public String callFlow();
-	}
-	
-	private class DefaultLabels implements EdgeLabels{
-
-		@Override
-		public String summaryFlow() {
-			return "summaryFlow";
-		}
-
-		@Override
-		public String normalFlow() {
-			return "normalFlow";
-		}
-
-		@Override
-		public String returnFlow() {
-			return "returnFlow";
-		}
-
-		@Override
-		public String call2ReturnFlow() {
-			return "call2ReturnFlow";
-		}
-
-		@Override
-		public String callFlow() {
-			return "callFlow";
-		}
-	}
 }
