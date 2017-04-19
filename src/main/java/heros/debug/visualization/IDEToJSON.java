@@ -252,8 +252,7 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 
 	public void writeToFile() {
 		try (FileWriter file = new FileWriter(jsonFile)) {
-			List<String> stringList = new LinkedList<String>();
-			List<String> methods = new LinkedList<String>();
+			JSONArray methods = new JSONArray();
 			Set<Method> visitedMethods = new HashSet<>();
 			Set<Direction> direction = new HashSet<>();
 			for (ExplodedSuperGraph<Method,Stmt,Fact,Value> c : methodToCfg.values()) {
@@ -261,7 +260,7 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 					JSONObject method = new JSONObject();
 					method.put("name", StringEscapeUtils.escapeHtml4(c.method.toString()));
 					method.put("id", id(c.method));
-					methods.add(method.toJSONString());
+					methods.add(method);
 				}
 				direction.add(c.direction);
 			}
@@ -270,31 +269,22 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 					getOrCreateESG(m, d);
 				}
 			}
+			JSONArray explodedSupergraphs = new JSONArray();
 			for (ExplodedSuperGraph<Method,Stmt,Fact,Value> c : methodToCfg.values()) {
-				stringList.add(toJSONObject(c).toJSONString());
-				if(visitedMethods.add(c.method)){
-					JSONObject method = new JSONObject();
-					method.put("name", StringEscapeUtils.escapeHtml4(c.method.toString()));
-					method.put("id", id(c.method));
-					methods.add(method.toJSONString());
-				}
+				explodedSupergraphs.add(toJSONObject(c));
 			}
-			file.write("var methods = [");
-			file.write(Joiner.on(",\n").join(stringList));
-			file.write("];\n");
-			file.write("var methodList = [");
-			file.write(Joiner.on(",\n").join(methods));
-			file.write("];\n");
-			
-			Set<String> directions = new HashSet<>();
+			JSONArray directionArray = new JSONArray();
 			for(Direction d: direction){
 				JSONObject v = new JSONObject();
 				v.put("value", d.toString());
-				directions.add(v.toJSONString());
+				directionArray.add(v);
 			}
-			file.write("var directions = [");
-			file.write(Joiner.on(",\n").join(directions));
-			file.write("];\n");
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("methodList", methods);
+			jsonObject.put("explodedSupergraphs", explodedSupergraphs);
+			jsonObject.put("directions", directionArray);
+			
+			file.write(jsonObject.toJSONString());
 
 		} catch (IOException e) {
 			e.printStackTrace();
