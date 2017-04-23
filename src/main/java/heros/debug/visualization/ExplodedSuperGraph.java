@@ -25,7 +25,6 @@ public class ExplodedSuperGraph<Method, Stmt, Fact, Value> {
 	private Map<ESGNode, Value> esgNodeToValue = new HashMap<>();
 
 	public void setValue(ESGNode esgNode, Value value) {
-		System.out.println(esgNode.a + " @ " + esgNode.u +" -----> " + value) ;
 		esgNodeToValue.put(esgNode,value);
 	}
 	public ExplodedSuperGraph(Method m, Direction dir) {
