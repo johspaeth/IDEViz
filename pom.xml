@@ -19,7 +19,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>heros</groupId>
-			<artifactId>heros-ideal</artifactId>
+			<artifactId>heros</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
