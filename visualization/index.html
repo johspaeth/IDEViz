@@ -161,6 +161,19 @@
                             'font-family': 'Courier'
                         }
                     }, {
+                        selector: '.additional.information',
+                        style: {
+                            'background-color': '#cccccc',
+                            'label': 'data(content)',
+                            'text-halign': 'right',
+                            'font-size': '12pt',
+                            'color': '#666',
+                            'height': 10,
+                            'width': 10,
+                            'font-family': 'Courier'
+                        }
+                    }, 
+                    {
                         selector: '.stmt.label.callSite',
                         style: {
                             'background-color': 'green'
@@ -311,6 +324,7 @@
         cy.$("*").addClass("hidden");
         cy.$(".method" + methodId + "." + selectedDirection).removeClass("hidden");
         cy.on('mouseover', 'node[callSite]', function(event) {
+            console.log(event)
             var el = webix.ui({
                 view: "contextmenu",
                 id: "callSiteContextMenu",
@@ -324,14 +338,14 @@
                 },
                 data: event.cyTarget.data().callees
             }).show();
-
-            $$("callSiteContextMenu").setPosition(event.originalEvent.x, event.originalEvent.y);
+            $$("callSiteContextMenu").setPosition(event.originalEvent.clientX, event.originalEvent.clientY);
             event.cyTarget.once('mouseout', function(event) {
                 $$("callSiteContextMenu").hide();
             })
 
         });
         cy.on('mouseover', 'node[returnSite]', function(event) {
+            console.log(event)
             var el = webix.ui({
                 view: "contextmenu",
                 id: "callSiteContextMenu",
@@ -346,7 +360,7 @@
                 data: event.cyTarget.data().callers
             }).show();
 
-            $$("callSiteContextMenu").setPosition(event.originalEvent.x, event.originalEvent.y);
+            $$("callSiteContextMenu").setPosition(event.originalEvent.clientX, event.originalEvent.clientY);
             event.cyTarget.once('mouseout', function(event) {
                 $$("callSiteContextMenu").hide();
             })

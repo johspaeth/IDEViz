@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 import heros.InterproceduralCFG;
 import heros.debug.visualization.IDEToJSON.Direction;
 import heros.solver.Pair;
@@ -19,6 +22,7 @@ public class ExplodedSuperGraph<Method, Stmt, Fact, Value> {
 	private LinkedList<ESGNode> nodes = new LinkedList<>();
 	private LinkedList<CalleeESGNode> calleeNodes = new LinkedList<>();
 	private LinkedList<ESGEdge> edges = new LinkedList<>();
+	private Multimap<Stmt,Object> informationAtStmt = HashMultimap.create();
 	private Set<Pair<ESGNode, ESGNode>> summaries = new HashSet<>();
 	private static int esgNodeCounter = 0;
 	private EdgeLabels labels;
@@ -99,7 +103,14 @@ public class ExplodedSuperGraph<Method, Stmt, Fact, Value> {
 	public void addSummary(ESGNode start, ESGNode target) {
 		summaries.add(new Pair<ESGNode, ESGNode>(start, target));
 	}
+	
+	public void addInformationForStatement(Stmt stmt,Object information){
+		informationAtStmt.put(stmt, information);
+	}
 
+	public Multimap<Stmt, Object> getInformationPerStmt() {
+		return informationAtStmt;
+	}
 	void addNode(ESGNode g) {
 		if (!nodes.contains(g))
 			nodes.add(g);
