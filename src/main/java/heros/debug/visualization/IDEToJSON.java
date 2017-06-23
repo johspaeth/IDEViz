@@ -220,11 +220,11 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 				pos.put("x", -numberOfInfos * 30);
 				pos.put("y", (stmtsList.indexOf(stmt) * 30 + labelYOffset));
 				nodeObj.put("position", pos);
-				String classes = "additional information method" + id(esg.method) + " " + esg.direction;
+				String classes = "esgNode additional information method" + id(esg.method) + " " + esg.direction;
 
 				JSONObject additionalData = new JSONObject();
 				additionalData.put("stmtId", id(stmt));
-				additionalData.put("content", StringEscapeUtils.escapeHtml4(info.toString()));
+				additionalData.put("ideValue", StringEscapeUtils.escapeHtml4(info.toString()));
 				nodeObj.put("classes", classes);
 				nodeObj.put("group", "nodes");
 				nodeObj.put("data", additionalData);
