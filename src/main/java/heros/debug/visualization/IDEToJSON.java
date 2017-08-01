@@ -278,6 +278,8 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			Set<Method> visitedMethods = new HashSet<>();
 			Set<Direction> direction = new HashSet<>();
 			for (ExplodedSuperGraph<Method, Stmt, Fact, Value> c : methodToCfg.values()) {
+				if(c.getEdges().isEmpty())
+					continue;
 				if (visitedMethods.add(c.method)) {
 					JSONObject method = new JSONObject();
 					method.put("name", StringEscapeUtils.escapeHtml4(c.method.toString()));
