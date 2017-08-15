@@ -123,8 +123,11 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			if (icfg.isCallStmt(u)) {
 				label.put("callSite", icfg.isCallStmt(u));
 				JSONArray callees = new JSONArray();
-				for (Method callee : icfg.getCalleesOfCallAt(u))
-					callees.add(new JSONMethod(callee, esg.direction));
+				for (Method callee : icfg.getCalleesOfCallAt(u)){
+					if(callee != null && callee.toString() != null && esg != null){
+						callees.add(new JSONMethod(callee, esg.direction));
+					}
+				}
 				label.put("callees", callees);
 			}
 			if (icfg.isExitStmt(u)) {
