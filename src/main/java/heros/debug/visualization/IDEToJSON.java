@@ -8,14 +8,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Multimap;
 
 import heros.InterproceduralCFG;
@@ -65,20 +63,26 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
+			if (this == obj) {
 				return true;
-			if (obj == null)
+			}
+			if (obj == null) {
 				return false;
-			if (getClass() != obj.getClass())
+			}
+			if (getClass() != obj.getClass()) {
 				return false;
+			}
 			Key other = (Key) obj;
-			if (dir != other.dir)
+			if (dir != other.dir) {
 				return false;
+			}
 			if (m == null) {
-				if (other.m != null)
+				if (other.m != null) {
 					return false;
-			} else if (!m.equals(other.m))
+				}
+			} else if (!m.equals(other.m)) {
 				return false;
+			}
 			return true;
 		}
 	}
@@ -88,8 +92,9 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 	// }
 
 	public Integer id(Object u) {
-		if (objectToInteger.get(u) != null)
+		if (objectToInteger.get(u) != null) {
 			return objectToInteger.get(u);
+		}
 		int size = objectToInteger.size() + 1;
 		objectToInteger.put(u, size);
 		return size;
@@ -123,19 +128,22 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			if (icfg.isCallStmt(u)) {
 				label.put("callSite", icfg.isCallStmt(u));
 				JSONArray callees = new JSONArray();
-				for (Method callee : icfg.getCalleesOfCallAt(u))
+				for (Method callee : icfg.getCalleesOfCallAt(u)) {
 					callees.add(new JSONMethod(callee, esg.direction));
+				}
 				label.put("callees", callees);
 			}
 			if (icfg.isExitStmt(u)) {
 				label.put("returnSite", icfg.isExitStmt(u));
 				JSONArray callees = new JSONArray();
 				Set<Method> callers = new HashSet<>();
-				for (Stmt callsite : icfg.getCallersOf(icfg.getMethodOf(u)))
+				for (Stmt callsite : icfg.getCallersOf(icfg.getMethodOf(u))) {
 					callers.add(icfg.getMethodOf(callsite));
+				}
 
-				for (Method caller : callers)
+				for (Method caller : callers) {
 					callees.add(new JSONMethod(caller, esg.direction));
+				}
 				label.put("callers", callees);
 			}
 			label.put("stmtId", id(u));
@@ -188,7 +196,7 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 				pos.put("x", (factsList.indexOf(calleeESGNode.linkedNode.a) + 1) * 30 + 10 + offset * charSize);
 				pos.put("y",
 						(stmtsList.indexOf(calleeESGNode.linkedNode.u) + (esg.direction == Direction.Forward ? 0 : 1))
-								* 30 + labelYOffset);
+						* 30 + labelYOffset);
 			} else {
 				assert stmtsList.indexOf(node.u) != -1;
 				pos.put("x", (factsList.indexOf(node.a) + 1) * 30 + offset * charSize);
@@ -203,8 +211,9 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			additionalData.put("id", "n" + id(node));
 			additionalData.put("stmtId", id(node.u));
 			additionalData.put("factId", id(node.a));
-			if (esg.getIDEValue(node) != null)
-				additionalData.put("ideValue", StringEscapeUtils.escapeHtml4(esg.getIDEValue(node).toString()));
+			if (esg.getIDEValue(node) != null) {
+				additionalData.put("ideValue", esg.getIDEValue(node).toString());
+			}
 			nodeObj.put("classes", classes);
 			nodeObj.put("group", "nodes");
 			nodeObj.put("data", additionalData);
@@ -261,8 +270,9 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 
 		while (!worklist.isEmpty()) {
 			Stmt curr = worklist.pollFirst();
-			if (visited.contains(curr))
+			if (visited.contains(curr)) {
 				continue;
+			}
 			visited.add(curr);
 			result.add(curr);
 			for (Stmt succ : icfg.getSuccsOf(curr)) {
@@ -278,8 +288,9 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			Set<Method> visitedMethods = new HashSet<>();
 			Set<Direction> direction = new HashSet<>();
 			for (ExplodedSuperGraph<Method, Stmt, Fact, Value> c : methodToCfg.values()) {
-				if(c.getEdges().isEmpty())
+				if(c.getEdges().isEmpty()) {
 					continue;
+				}
 				if (visitedMethods.add(c.method)) {
 					JSONObject method = new JSONObject();
 					method.put("name", StringEscapeUtils.escapeHtml4(c.method.toString()));
@@ -318,9 +329,9 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 	private class JSONMethod extends JSONObject {
 
 		JSONMethod(Method m, Direction dir) {
-			this.put("name", StringEscapeUtils.escapeHtml4(m.toString()));
-			this.put("id", id(m));
-			this.put("direction", dir.toString());
+			put("name", StringEscapeUtils.escapeHtml4(m.toString()));
+			put("id", id(m));
+			put("direction", dir.toString());
 		}
 	}
 
