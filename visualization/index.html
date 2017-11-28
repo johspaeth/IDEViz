@@ -25,37 +25,81 @@
     </div>
     <script>
     var methods = [];
+    var queryList = [];
     var methodList = [];
-    var directions = [{
-        value: "Forward"
-    }];
-    var selectedDirection = "Forward";
     var isShortNotation = true;
     var activeMethod = null;
+    var activeMethodId = null;
+    var activeQueryId = null;
     var highlightedNode;
     var mainComponent = null;
     initialzeView();
+
+    function updateMethodList(){
+    	for(var i in queryList){
+    		if(queryList[i].id == activeQueryId){
+    			activeQuery = queryList[i];
+    			methodList = activeQuery.methods;
+    		}
+    	}
+		webix.ui({
+                            view: "list",
+                            data: methodList,
+                            width: 300,
+                            id: "methodList",
+                            template: "<span style='font-size:9pt'>#methodName#</span>",
+                            select: true,
+                            on: {
+                                onSelectChange: function(selection) {
+                                    activeMethodId = selection[0]
+                                    console.log(activeMethodId)
+                                    updateGraph();
+                                   // renderMethodWithESG(activeMethod, $("div[id=methodGraph]"));
+                                }
+                            }
+                        },  $$("methodList"));
+	
+    }
+	function updateGraph(){
+    	for(var i in methodList){
+    		if(methodList[i].id == activeMethodId){
+    			activeMethod = methodList[i];
+    			console.log(activeMethod.cfg)
+
+           		 //$$("methodLabel").setValue(item.methodName);
+           		var info = $.merge(activeMethod.cfg.controlFlowNode,activeMethod.dfg.dataFlowNode);
+    			renderCfg(info,$("div[id=methodGraph]")); 
+    			//renderCfg(activeMethod.dfg.dataFlowNode,$("div[id=methodGraph]"));
+    		}
+    	}
+		
+    }
+    
     function initialzeView() {
         if(mainComponent)
             mainComponent.destructor();
         mainComponent = webix.ui({
             view: "tabview",
+            id: "main",
             cells: [
                 {
                     header: "IDEViz Visualization",
                     body: {
                         cols: [{
                             view: "list",
-                            data: methodList,
+                            data: queryList,
                             width: 300,
-                            template: "<span style='font-size:9pt'>#name#</span>",
+                            template: "<span style='font-size:9pt'>#query#</span>",
                             select: true,
                             on: {
                                 onSelectChange: function(selection) {
-                                    activeMethod = selection[0]
-                                    renderMethodWithESG(activeMethod, $("div[id=methodGraph]"));
+                                    activeQueryId = selection[0];
+                                    updateMethodList();
                                 }
-                            }
+                            }},{
+                            view: "list",
+                            width: 300,
+                            id: "methodList",
                         }, {
                             view: "resizer"
                         }, {
@@ -63,18 +107,6 @@
                                 view: "toolbar",
                                 id: "myToolbar",
                                 cols: [{
-                                    view: "segmented",
-                                    width: 270,
-                                    align: "center",
-                                    on: {
-                                        onChange: function(selection) {
-                                            selectedDirection = selection;
-                                            renderMethodWithESG(activeMethod, $("div[id=methodGraph]"));
-                                        }
-                                    },
-
-                                    options: directions
-                                }, {
                                     view: "label",
                                     id: "methodLabel",
                                     label: "Label",
@@ -120,6 +152,201 @@
             elements.removeClass(cls);
         })
     }
+
+    function renderCfg(cfg,methodDiv){
+
+
+           // $$("methodLabel").setValue(item.methodName);
+            $$("methodLabel").refresh();
+            cy = cytoscape({
+                container: methodDiv,
+                zoomingEnabled: true,
+                userZoomingEnabled: true,
+                panningEnabled: true,
+                userPanningEnabled: true,
+                autoungrabify: true,
+                layout: {
+                    name: 'preset'
+                },
+
+                style: [{
+                        selector: 'node',
+                        style: {
+                            'height': 6,
+                            'width': 6,
+                            'background-color': '#cccccc',
+                        }
+                    }, {
+                        selector: '.stmt.label',
+                        style: {
+                            'background-color': '#cccccc',
+                            'label': (isShortNotation ? 'data(shortLabel)' : 'data(label)'),
+                            'text-halign': 'right',
+                            'font-size': '12pt',
+                            'color': '#666',
+                            'height': 10,
+                            'width': 10,
+                            'font-family': 'Courier'
+                        }
+                    }, {
+                        selector: '.additional.information',
+                        style: {
+                            'background-color': '#cccccc',
+                            'text-halign': 'left',
+                            'font-size': '12pt',
+                            'color': '#666',
+                            'height': 10,
+                            'width': 10,
+                            'font-family': 'Courier'
+                        }
+                    }, {
+                        selector: '.showAdditionalInfo',
+                        style: {
+                            'label': 'data(content)'
+                        }
+                    }, 
+                    {
+                        selector: '.stmt.label.callSite',
+                        style: {
+                            'background-color': 'green'
+                        }
+                    }, {
+                        selector: '.stmt.label.returnSite',
+                        style: {
+                            'background-color': 'red'
+                        }
+                    }, {
+                        selector: '.fact.label',
+                        style: {
+                            'label': 'data(label)',
+                            'background-color': '#ffffff',
+                            'text-rotation': '90deg',
+                            'text-halign': 'left',
+                            'font-size': '12pt',
+                            'color': '#666',
+                            'font-family': 'Courier'
+                        },
+                    }, {
+                        selector: '.label.bold',
+                        style: {
+                            "font-weight": "bold",
+                            'color': '#111',
+                        }
+                    },
+
+                    {
+                        selector: '.label.boldHighlight',
+                        style: {
+                            "font-weight": "bold",
+                            'color': 'rgb(255, 156, 49)',
+                        }
+                    }, {
+                        selector: '.cfgEdge',
+                        style: {
+                            'target-arrow-shape': 'triangle',
+                            'target-arrow-color': '#ccc',
+                            'line-color': '#ccc',
+                            'width': 1,
+
+                            'curve-style': function(el) {
+                                return (drawStraighLine(el) ? 'bezier' : 'unbundled-bezier');
+                            }
+                        }
+                    }, {
+                        selector: '.esgEdge',
+                        style: {
+                            'target-arrow-shape': 'triangle',
+                            'target-arrow-color': function(el) {
+                                return (isIdentityEdge(el) ? '#cccccc' : 'blue');
+                            },
+                            'width': 1,
+                            'line-color': function(el) {
+                                return (isIdentityEdge(el) ? "#cccccc" : 'blue');
+                            },
+
+                            'curve-style': function(el) {
+                                return (isReverseEdge(el) ? 'unbundled-bezier' : 'bezier');
+                            }
+                        }
+                    }, {
+                        selector: '.hidden',
+                        style: {
+                            'opacity': '0'
+                        }
+                    }, {
+                        selector: '.callFlow',
+                        style: {
+                            'target-arrow-color': 'green',
+                            'line-color': 'green',
+                            'target-arrow-shape': 'none',
+                            'line-style': 'dotted',
+                        }
+                    }, {
+                        selector: '.summaryFlow',
+                        style: {
+                            'target-arrow-color': 'green',
+                            'line-color': 'green',
+                        }
+                    }, {
+                        selector: '.returnFlow',
+                        style: {
+                            'target-arrow-color': 'green',
+                            'line-color': 'green',
+                            'target-arrow-shape': 'none',
+                            'line-style': 'dotted',
+                        }
+                    }, {
+                        selector: '.call2ReturnFlow',
+                        style: {}
+                    }, {
+                        selector: '.indirectReadFlow',
+                        style: {
+                            'target-arrow-color': 'green',
+                            'line-color': 'green',
+                            'line-style': 'dashed',
+                        }
+                    }, {
+                        selector: '.indirectCallFlow',
+                        style: {
+                            'target-arrow-color': 'green',
+                            'line-color': 'green',
+                            'line-style': 'dashed',
+                        }
+                    }, {
+                        selector: '.indirectReturnFlow',
+                        style: {
+                            'target-arrow-color': 'green',
+                            'line-color': 'green',
+                            'line-style': 'dashed',
+                        }
+                    }, {
+                        selector: '.highlight',
+                        style: {
+                            'height': 8,
+                            'width': 8,
+                            'opacity': '1',
+                            'background-color': 'orange'
+                        }
+                    }, {
+                        selector: '.showLabel',
+                        style: {
+                            'label': 'data(ideValue)'
+                        }
+                    }, {
+                        selector: '.indirectWriteFlow',
+                        style: {
+                            'target-arrow-color': 'green',
+                            'line-color': 'green',
+                            'line-style': 'dashed',
+                        }
+                    }
+                ],
+
+                elements: cfg
+            });
+        return cy;
+    }
+
 
     function renderMethodIn(methodId, methodDiv) {
         var cy = null;
@@ -321,7 +548,6 @@
     }
 
     function renderMethodWithESG(methodId, methodDiv) {
-
         var cy = renderMethodIn(methodId, methodDiv);
         if (cy == null)
             return;
@@ -473,10 +699,8 @@
 
     function receivedText(file) {
         var json = JSON.parse(file.target.result);
-        methodList = json.methodList;
-        methods = json.explodedSupergraphs;
-        directions = json.directions;
-        selectedDirection = directions[0].value;
+        queryList = json;
+        console.log(json)
         initialzeView();
         renderMethodWithESG(activeMethod, $("div[id=methodGraph]"));
     }

@@ -20,7 +20,7 @@ import com.google.common.collect.Multimap;
 
 import heros.InterproceduralCFG;
 
-public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<Stmt, Method>> {
+public class IDEToJSON<Query, Method, Stmt, Fact, Value, I extends InterproceduralCFG<Stmt, Method>> {
 
 	private File jsonFile;
 	private Map<Key, ExplodedSuperGraph<Method, Stmt, Fact, Value>> methodToCfg = new HashMap<>();
@@ -36,11 +36,11 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 		this.icfg = icfg;
 	}
 
-	public ExplodedSuperGraph<Method, Stmt, Fact, Value> getOrCreateESG(Method method, Direction dir) {
-		ExplodedSuperGraph<Method, Stmt, Fact, Value> cfg = methodToCfg.get(new Key(method, dir));
+	public ExplodedSuperGraph<Method, Stmt, Fact, Value> getOrCreateESG(Query q,  Method method, Direction dir) {
+		ExplodedSuperGraph<Method, Stmt, Fact, Value> cfg = methodToCfg.get(new Key(q, method, dir));
 		if (cfg == null) {
 			cfg = new ExplodedSuperGraph<Method, Stmt, Fact, Value>(method, dir);
-			methodToCfg.put(new Key(method, dir), cfg);
+			methodToCfg.put(new Key(q,method, dir), cfg);
 		}
 		return cfg;
 	}
@@ -48,8 +48,10 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 	private class Key {
 		final Method m;
 		final Direction dir;
+		private Query q;
 
-		private Key(Method m, Direction dir) {
+		private Key(Query q, Method m, Direction dir) {
+			this.q = q;
 			this.m = m;
 			this.dir = dir;
 		}
@@ -60,6 +62,7 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			int result = 1;
 			result = prime * result + ((dir == null) ? 0 : dir.hashCode());
 			result = prime * result + ((m == null) ? 0 : m.hashCode());
+			result = prime * result + ((q == null) ? 0 : q.hashCode());
 			return result;
 		}
 
@@ -78,7 +81,12 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 				if (other.m != null)
 					return false;
 			} else if (!m.equals(other.m))
-				return false;
+				return false;	
+			if (q == null) {
+					if (other.q != null)
+						return false;
+				} else if (!q.equals(other.q))
+					return false;
 			return true;
 		}
 	}
@@ -280,6 +288,10 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 			JSONArray methods = new JSONArray();
 			Set<Method> visitedMethods = new HashSet<>();
 			Set<Direction> direction = new HashSet<>();
+			Set<Query> queries = new HashSet<>();
+			for (IDEToJSON<Query, Method, Stmt, Fact, Value, I>.Key c : methodToCfg.keySet()) {
+				queries.add(c.q);
+			}
 			for (ExplodedSuperGraph<Method, Stmt, Fact, Value> c : methodToCfg.values()) {
 				if(c.getEdges().isEmpty())
 					continue;
@@ -291,9 +303,11 @@ public class IDEToJSON<Method, Stmt, Fact, Value, I extends InterproceduralCFG<S
 				}
 				direction.add(c.direction);
 			}
-			for (Direction d : direction) {
-				for (Method m : visitedMethods) {
-					getOrCreateESG(m, d);
+			for(Query q : queries){
+				for (Direction d : direction) {
+					for (Method m : visitedMethods) {
+						getOrCreateESG(q, m, d);
+					}
 				}
 			}
 			JSONArray explodedSupergraphs = new JSONArray();
